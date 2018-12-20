@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+        <title>Products Grid</title>
+    </head>
+    <body style="margin-left:30px;">
+        <header style="padding-bottom: 10px;">
+            <h1>Products Grid</h1>
+
+            <p>Here you're sure to find a bargain on some of the finest ascii available to purchase. Be sure to peruse our selection of ascii faces in an exciting range of sizes and prices.</p>
+
+            <p>But first, a word from our sponsors:</p> <script>document.write('<img class="ad" src="/ads/?r=' + Math.floor(Math.random()*1000) + '"/>');</script>
+
+            
+        </header>
+        <div class="row" >
+        	<div class="col-sm-2"> <button class="price_sort btn btn-primary" type="button"> Sort by price </button> </div>
+        	<div class="col-sm-2"> <button class="id_sort btn btn-primary" type="button"> Sort by ID </button> </div>
+        	<div class="col-sm-2"> <button class="size_sort btn btn-primary" type="button"> Sort by size </button> </div>
+        </div>
+        
+        <section class="products">
+            
+        </section>
+    </body>
+</html>
+<script type="text/javascript">
+	
+	var sort = "&_sort=id";
+	var pageNum = 2;
+	var request = new XMLHttpRequest();
+	var data;
+
+	//IF the user scrolls to the bottom load more results
+	$(window).scroll(function() {
+	   if($(window).scrollTop() + $(window).height() == $(document).height()) {
+	           	
+
+	       	console.log(sort);
+	       	console.log("Page Num: " + pageNum);
+	       	request.open('GET', '/api/products' + "?_page=" + pageNum + "&?_limit=15" + sort , true);
+       		request.send();
+
+       		pageNum ++;
+   			
+	   }
+	});
+	
+
+	request.open('GET', '/api/products' + "?_page=1&?_limit=15" + sort , true);
+	request.onload = function () {
+
+	  // Begin accessing JSON data here
+	   data = JSON.parse(this.response);
+
+	  console.log(data);
+
+	  for (var i = 0; i <= data.length -1; i++) {
+
+	  	//create elements to add to DOM
+	  	var divEl = document.createElement("div");
+	  	var face = document.createElement("p");
+	  	var date = document.createElement("p");
+	  	var price = document.createElement("p");
+	  	var end = document.createElement("p");
+
+	  	//if there is no more data objects, append end of catalogue text to bottom of element
+	  	if(data.length == 0)
+	  	{
+	  		console.log("no results");
+	  		divEl.setAttribute("class","col-sm-12");
+		  	divEl.setAttribute("style", "align-content:center;")
+	  		end.textContent = "End of catalogue";
+	  		var sect = document.getElementsByClassName("products")[0];
+		  	sect.appendChild(divEl);
+	  	}
+	  	else
+	  	{
+	  		var divEl = document.createElement("div");
+		  	var face = document.createElement("p");
+		  	face.setAttribute("style", "font-size:" + data[i].size + "px;");
+		  	var date = document.createElement("p");
+		  	var price = document.createElement("p");
+
+		  	divEl.setAttribute("class","col-sm-3");
+		  	divEl.setAttribute("style", "border:2px solid black; margin:2px; min-height:180px;")
+		  	divEl.appendChild(face);
+		  	divEl.appendChild(date);
+		  	divEl.appendChild(price);
+
+		  	face.textContent = data[i].face;
+
+
+		  	//create date variable for "today"
+		  	var now = new Date();
+
+		  	//put json date into date variable
+		  	var itemDate = new Date(data[i].date);
+		  	
+
+		  	//calculate difference in dates
+		  	var timeDiff = Math.abs(now.getTime() - itemDate.getTime());
+			var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+
+
+			//if difference in days is greater than a week, display full date, otherwise use "days ago format"
+			if(diffDays < 7)
+			{
+				date.textContent = "Date: " + diffDays + " days ago.";
+			}
+			else
+			{
+				date.textContent = "Date: " + data[i].date;
+			}
+
+		  	
+		  	price.textContent = "Price: $" + (data[i].price/100).toFixed(2);
+
+
+		  	var sect = document.getElementsByClassName("products")[0];
+		  	sect.appendChild(divEl);
+
+	  		
+	  	}
+	  	
+	  	
+	  }
+
+	  
+	}
+
+	request.send();
+
+
+	//sort functions
+	$( ".price_sort" ).click(function() {
+		$( ".products" ).empty();	
+		sort = "&_sort=price";
+
+		pageNum = 2;
+		
+		request.open('GET', '/api/products' + "?_page=1&_limit=15" + sort , true);
+
+		request.send();
+	});
+
+	$( ".id_sort" ).click(function() {
+		$( ".products" ).empty();	
+		sort = "&_sort=id";
+		
+		pageNum = 2;
+		request.open('GET', '/api/products' + "?_page=1&?_limit=15" + sort , true);
+
+		request.send();
+	});
+
+	$( ".size_sort" ).click(function() {
+		$( ".products" ).empty();	
+		sort = "&_sort=size";
+		
+		pageNum = 2;
+		request.open('GET', '/api/products' + "?_page=1&?_limit=15" + sort , true);
+
+		request.send();
+	});
+
+</script>
